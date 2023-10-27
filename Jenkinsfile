@@ -1,43 +1,41 @@
-pipeline {
-    agent any
-    environment {
-        GITHUB_USERNAME = 'bous-mboa'
-        GITHUB_TOKEN = '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'
-    }
-    stages {
-        stage('Checkout Source') {
-            steps {
-                script {
-                    // Récupère les informations d'authentification du contexte d'environnement
-                    def gitUsername = env.GITHUB_USERNAME
-                    def gitToken = env.GITHUB_TOKEN
+pipeline { // Defines a pipeline
+  agent any // Specifies that the pipeline can be run on any available agent
 
-                    // Clonez le dépôt en utilisant les informations d'identification
-                    git credentialsId: '', url: "https://${gitUsername}:${gitToken}@github.com/bous-mboa/sample-app.git"
-                }
-            }
-        }
-        stage ('Unit Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-        stage ('Build') {
-            steps {
-                sh 'mvn install'
-            }
-        }
-        stage ('docker build') {
-            steps {
-                sh 'docker build -t javulna-0.1 .'
-            }
-        }
-        stage ('docker run container') {
-            steps {
-                sh 'docker stop app || true'
-                sh 'docker rm app || true'
-                sh 'docker run --name app -it -d -p 9000:8080 javulna-0.1'
-            }
-        }
+  tools { // Configures the tools used in the pipeline
+    maven 'maven' // Specifies the Maven tool that should be used in the pipeline
+  }
+
+  stages { // Defines the different stages of the pipeline
+    stage('Checkout Source') { // Defines the 'Checkout Source' stage
+      steps { // Specifies the steps to be executed within this stage
+        git 'https://github.com/bous-mboa/sample-app.git' // Retrieves the source code from the specified GitHub repository
+      }
     }
+    
+    stage ('Unit Test') { // Defines the 'Unit Test' stage
+      steps { // Specifies the steps to be executed within this stage
+        sh 'mvn test' // Runs the Maven command to execute the unit tests
+      }   
+    }
+
+    stage ('Build') { // Defines the 'Build' stage
+      steps { // Specifies the steps to be executed within this stage
+        sh 'mvn install' // Runs the Maven command to clean and build the project
+      }   
+    }
+
+    stage ('docker build') { // Defines the 'docker build' stage
+      steps { // Specifies the steps to be executed within this stage
+        sh 'docker build -t javulna-0.1 .' // Builds a Docker image with the specified tag
+      }   
+    }
+stage ('docker run container') { // Defines the 'docker run container' stage
+    steps { // Specifies the steps to be executed within this stage
+        sh 'docker stop app || true' // Stops any running container with the name 'app'
+        sh 'docker rm app || true' // Removes the container with the name 'app' if it exists
+        sh 'docker run --name app -it -d -p 9000:8080 javulna-0.1' // Runs a new Docker container named 'app' based on the 'javulna-0.1' image, with port mapping from 8080 to 9000, in detached mode (-d), and allocates a pseudo-TTY (-it)
+     }
+   }
+ }
 }
+
